@@ -1,6 +1,34 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
+interface StockPrice {
+  date: string;
+  ticker: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
+interface StockSummary {
+  ticker: string;
+  latest_price: number;
+  '52_week_low': number;
+  '52_week_high': number;
+  price_position: number;
+  avg_volume: number;
+  weekly_return: number;
+  monthly_return: number;
+  yearly_return: number;
+}
+
+interface EnhancedStockPrice extends StockPrice {
+  MA20: number | null;
+  MA50: number | null;
+  avg_20day_volume: number | null;
+}
+
 export async function GET(
   request: Request,
   { params }: { params: { ticker: string } }
@@ -16,6 +44,7 @@ export async function GET(
       .order('date', { ascending: true });
 
     if (priceError) throw priceError;
+    if (!priceData) throw new Error('No price data found');
 
     // Get summary data
     const { data: summaryData, error: summaryError } = await supabase
@@ -25,13 +54,14 @@ export async function GET(
       .single();
 
     if (summaryError) throw summaryError;
+    if (!summaryData) throw new Error('No summary data found');
 
     // Calculate moving averages
-    const prices = priceData.map(d => ({
-      ...d,
-      MA20: calculateMA(priceData, d.date, 20),
-      MA50: calculateMA(priceData, d.date, 50),
-      avg_20day_volume: calculateMA(priceData, d.date, 20, 'volume')
+    const prices: EnhancedStockPrice[] = priceData.map(d => ({
+      ...d as StockPrice,
+      MA20: calculateMA(priceData as StockPrice[], d.date, 20),
+      MA50: calculateMA(priceData as StockPrice[], d.date, 50),
+      avg_20day_volume: calculateMA(priceData as StockPrice[], d.date, 20, 'volume')
     }));
 
     return NextResponse.json({
@@ -39,7 +69,7 @@ export async function GET(
         price_data: prices,
         volume_data: prices
       },
-      summary: summaryData
+      summary: summaryData as StockSummary
     });
   } catch (error) {
     console.error('Error fetching stock data:', error);
@@ -50,7 +80,7 @@ export async function GET(
   }
 }
 
-function calculateMA(data: any[], currentDate: string, period: number, field: string = 'close') {
+function calculateMA(data: StockPrice[], currentDate: string, period: number, field: keyof StockPrice = 'close'): number | null {
   const currentIndex = data.findIndex(d => d.date === currentDate);
   if (currentIndex < period - 1) return null;
 
