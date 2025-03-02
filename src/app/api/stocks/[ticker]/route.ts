@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
+export const dynamic = 'force-dynamic';
+
 interface StockPrice {
   date: string;
   ticker: string;
@@ -29,13 +31,9 @@ interface EnhancedStockPrice extends StockPrice {
   avg_20day_volume: number | null;
 }
 
-type Props = {
-  params: { ticker: string }
-}
-
 export async function GET(
-  request: NextRequest,
-  { params }: Props
+  _request: NextRequest,
+  { params }: { params: { ticker: string } }
 ) {
   try {
     const ticker = params.ticker.toUpperCase();
