@@ -31,10 +31,10 @@ interface EnhancedStockPrice extends StockPrice {
 
 export async function GET(
   request: Request,
-  { params }: { params: { ticker: string } }
+  context: { params: { ticker: string } }
 ) {
   try {
-    const ticker = params.ticker.toUpperCase();
+    const ticker = context.params.ticker.toUpperCase();
 
     // Get price data
     const { data: priceData, error: priceError } = await supabase
