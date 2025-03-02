@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { type NextApiRequest } from 'next';
 
 interface StockPrice {
   date: string;
