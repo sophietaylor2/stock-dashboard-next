@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { type NextApiRequest } from 'next';
 
 interface StockPrice {
   date: string;
@@ -29,12 +30,9 @@ interface EnhancedStockPrice extends StockPrice {
   avg_20day_volume: number | null;
 }
 
-export async function GET(
-  request: Request,
-  context: { params: { ticker: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { ticker: string } }) {
   try {
-    const ticker = context.params.ticker.toUpperCase();
+    const ticker = params.ticker.toUpperCase();
 
     // Get price data
     const { data: priceData, error: priceError } = await supabase
