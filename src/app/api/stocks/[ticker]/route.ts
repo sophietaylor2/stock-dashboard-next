@@ -1,4 +1,3 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
@@ -31,18 +30,12 @@ interface EnhancedStockPrice extends StockPrice {
   avg_20day_volume: number | null;
 }
 
-export interface Context {
-  params: {
-    ticker: string;
-  };
-}
-
 export async function GET(
-  _request: NextRequest,
-  context: Context
+  request: Request,
+  { params }: { params: { ticker: string } }
 ) {
   try {
-    const ticker = context.params.ticker.toUpperCase();
+    const { ticker } = params;
 
     // Get price data
     const { data: priceData, error: priceError } = await supabase
@@ -72,18 +65,23 @@ export async function GET(
       avg_20day_volume: calculateMA(priceData as StockPrice[], d.date, 20, 'volume')
     }));
 
-    return NextResponse.json({
+    return new Response(JSON.stringify({
       data: {
         price_data: prices,
         volume_data: prices
       },
       summary: summaryData as StockSummary
+    }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
     console.error('Error fetching stock data:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch stock data' },
-      { status: 500 }
+    return new Response(
+      JSON.stringify({ error: 'Failed to fetch stock data' }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
     );
   }
 }
