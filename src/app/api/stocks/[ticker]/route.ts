@@ -29,7 +29,14 @@ interface EnhancedStockPrice extends StockPrice {
   avg_20day_volume: number | null;
 }
 
-export async function GET(request: NextRequest, { params }: { params: { ticker: string } }) {
+type Props = {
+  params: { ticker: string }
+}
+
+export async function GET(
+  request: NextRequest,
+  { params }: Props
+) {
   try {
     const ticker = params.ticker.toUpperCase();
 
