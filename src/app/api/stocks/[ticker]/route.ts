@@ -31,12 +31,18 @@ interface EnhancedStockPrice extends StockPrice {
   avg_20day_volume: number | null;
 }
 
+export interface Context {
+  params: {
+    ticker: string;
+  };
+}
+
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { ticker: string } }
+  context: Context
 ) {
   try {
-    const ticker = params.ticker.toUpperCase();
+    const ticker = context.params.ticker.toUpperCase();
 
     // Get price data
     const { data: priceData, error: priceError } = await supabase
